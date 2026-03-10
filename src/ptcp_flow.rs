@@ -24,8 +24,23 @@ const PRE_LOGIN_PAYLOAD: [u8; 32] = [
     0xa1, 0xaa,
 ];
 
+#[derive(Clone, Copy, Debug)]
+pub struct MediaCaptureConfig {
+    pub chunks: usize,
+    pub timeout_ms: u64,
+}
+
+impl Default for MediaCaptureConfig {
+    fn default() -> Self {
+        Self {
+            chunks: MEDIA_CAPTURE_CHUNKS,
+            timeout_ms: MEDIA_CAPTURE_TIMEOUT_MS,
+        }
+    }
+}
+
 pub async fn perform_ptcp_sync(context: BootstrapContext) -> Result<()> {
-    perform_ptcp_sync_with_credentials(context, "admin", "")
+    perform_ptcp_sync_with_credentials(context, "admin", "", MediaCaptureConfig::default())
         .await
         .context("Internal PTCP entrypoint should not be used without credentials")
 }
@@ -34,6 +49,7 @@ pub async fn perform_ptcp_sync_with_credentials(
     context: BootstrapContext,
     device_user: &str,
     device_password: &str,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     let main_host_port = context.aux_socket.local_addr()?.port();
     let aux_host_port = context.main_socket.local_addr()?.port();
@@ -56,6 +72,7 @@ pub async fn perform_ptcp_sync_with_credentials(
         device_user,
         device_password,
         main_host_port,
+        media_capture,
     )
     .await
     {
@@ -70,6 +87,7 @@ pub async fn perform_ptcp_sync_with_credentials(
         device_user,
         device_password,
         aux_host_port,
+        media_capture,
     )
     .await
     {
@@ -88,6 +106,7 @@ async fn try_ptcp_sync(
     device_user: &str,
     device_password: &str,
     host_port: u16,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     socket.connect(target).await?;
 
@@ -170,6 +189,7 @@ async fn try_ptcp_sync(
                     device_user,
                     device_password,
                     host_port,
+                    media_capture,
                 )
                 .await;
             }
@@ -190,6 +210,7 @@ async fn complete_post_init(
     device_user: &str,
     device_password: &str,
     host_port: u16,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     let command_19 = session.send(PtcpBody::Command(
         [
@@ -250,6 +271,7 @@ async fn complete_post_init(
                     device_user,
                     device_password,
                     host_port,
+                    media_capture,
                 )
                 .await;
             }
@@ -269,6 +291,7 @@ async fn complete_1b(
     device_user: &str,
     device_password: &str,
     host_port: u16,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     let command_1b = session.send(PtcpBody::Command(
         b"\x1b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".to_vec(),
@@ -313,6 +336,7 @@ async fn complete_1b(
         device_user,
         device_password,
         host_port,
+        media_capture,
     )
     .await
 }
@@ -326,6 +350,7 @@ async fn complete_pre_login(
     device_user: &str,
     device_password: &str,
     host_port: u16,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     let heartbeat = session.send(PtcpBody::Heartbeat);
     println!(
@@ -414,6 +439,7 @@ async fn complete_pre_login(
         device_user,
         device_password,
         host_port,
+        media_capture,
     )
     .await
 }
@@ -494,6 +520,7 @@ async fn complete_login_auth(
     device_user: &str,
     device_password: &str,
     host_port: u16,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     let response = LoginResponse::build(device_user, device_password, challenge, auth_strategy);
     let auth_payload = session.send(PtcpBody::Payload(crate::ptcp::PtcpPayload {
@@ -553,12 +580,13 @@ async fn complete_login_auth(
                         label,
                         session,
                         buf,
-                        challenge,
-                        device_user,
-                        device_password,
-                        host_port,
-                    )
-                    .await;
+                    challenge,
+                    device_user,
+                    device_password,
+                    host_port,
+                    media_capture,
+                )
+                .await;
                 }
                 return Err(anyhow!(
                     "PTCP auth payload did not contain Function/MediaEncrypt text"
@@ -583,6 +611,7 @@ async fn complete_stream_open(
     device_user: &str,
     device_password: &str,
     host_port: u16,
+    media_capture: MediaCaptureConfig,
 ) -> Result<()> {
     let media_bind = session.send(PtcpBody::Bind {
         realm: MEDIA_REALM,
@@ -704,7 +733,8 @@ async fn complete_stream_open(
                         frame.response.is_success(),
                         "PTCP play response was not 200/e-xav"
                     );
-                    let media_chunks = capture_media_chunks(socket, label, session, buf).await?;
+                    let media_chunks =
+                        capture_media_chunks(socket, label, session, buf, media_capture).await?;
                     let summary = persist_media_capture(
                         std::path::Path::new("artifacts"),
                         label,
@@ -738,11 +768,12 @@ async fn capture_media_chunks(
     label: &str,
     session: &mut PtcpSession,
     buf: &mut [u8; 4096],
+    media_capture: MediaCaptureConfig,
 ) -> Result<Vec<Vec<u8>>> {
     let mut media_chunks = Vec::new();
 
-    while media_chunks.len() < MEDIA_CAPTURE_CHUNKS {
-        let recv = timeout(Duration::from_millis(MEDIA_CAPTURE_TIMEOUT_MS), socket.recv(buf)).await;
+    while media_chunks.len() < media_capture.chunks {
+        let recv = timeout(Duration::from_millis(media_capture.timeout_ms), socket.recv(buf)).await;
         let n = match recv {
             Ok(Ok(n)) => n,
             Ok(Err(error)) => return Err(error).context("Failed while capturing media chunks"),

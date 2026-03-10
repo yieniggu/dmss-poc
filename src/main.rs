@@ -6,7 +6,7 @@ use dmss_poc::{
         render_reference_comparison_report,
     },
     bootstrap::bootstrap_flow,
-    ptcp_flow::perform_ptcp_sync_with_credentials,
+    ptcp_flow::{perform_ptcp_sync_with_credentials, MediaCaptureConfig},
     traversal::perform_stun,
 };
 use std::path::PathBuf;
@@ -44,6 +44,10 @@ enum Command {
         device_user: String,
         #[arg(long)]
         device_password: String,
+        #[arg(long, default_value_t = 8)]
+        media_capture_chunks: usize,
+        #[arg(long, default_value_t = 400)]
+        media_capture_timeout_ms: u64,
     },
     AnalyzeCapture {
         #[arg(long)]
@@ -78,7 +82,20 @@ async fn main() -> Result<()> {
             serial,
             device_user,
             device_password,
-        } => run_ptcp_sync(&serial, &device_user, &device_password).await,
+            media_capture_chunks,
+            media_capture_timeout_ms,
+        } => {
+            run_ptcp_sync(
+                &serial,
+                &device_user,
+                &device_password,
+                MediaCaptureConfig {
+                    chunks: media_capture_chunks,
+                    timeout_ms: media_capture_timeout_ms,
+                },
+            )
+            .await
+        }
         Command::AnalyzeCapture { dir } => run_analyze_capture(&dir),
         Command::CompareReference {
             capture_dir,
@@ -99,10 +116,15 @@ async fn run_stun(serial: &str, device_user: &str, device_password: &str) -> Res
     Ok(())
 }
 
-async fn run_ptcp_sync(serial: &str, device_user: &str, device_password: &str) -> Result<()> {
+async fn run_ptcp_sync(
+    serial: &str,
+    device_user: &str,
+    device_password: &str,
+    media_capture: MediaCaptureConfig,
+) -> Result<()> {
     let context = bootstrap_flow(serial, device_user, device_password).await?;
     let context = perform_stun(context).await?;
-    perform_ptcp_sync_with_credentials(context, device_user, device_password).await
+    perform_ptcp_sync_with_credentials(context, device_user, device_password, media_capture).await
 }
 
 fn run_analyze_capture(dir: &PathBuf) -> Result<()> {
