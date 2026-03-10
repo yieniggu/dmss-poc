@@ -1,0 +1,25 @@
+ffprobe_bin=/opt/homebrew/bin/ffprobe
+candidate=structural_annexb_plus_continuation_repeat16_pps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat16_pps.bin
+stderr=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat16_pps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat16_sps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat16_sps.bin
+stderr=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat16_sps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat16_vps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat16_vps.bin
+stderr=[mp3 @ 0x14ce139c0] Failed to find two consecutive MPEG audio frames. | /Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat16_vps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat2_pps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat2_pps.bin
+stderr=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat2_pps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat2_sps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat2_sps.bin
+stderr=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat2_sps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat2_vps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat2_vps.bin
+stderr=[mp3 @ 0x121f07c20] Failed to find two consecutive MPEG audio frames. | /Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat2_vps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat4_pps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat4_pps.bin
+stderr=[mp3 @ 0x157704430] Failed to find two consecutive MPEG audio frames. | /Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat4_pps.bin: Invalid data found when processing input | 
+
+candidate=structural_annexb_plus_continuation_repeat4_sps success=false path=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat4_sps.bin
+stderr=/Users/admin/Desktop/elements/aglai/apps/cameras/dmss_poc/artifacts/capture_20260308T224623Z_main_pub/analysis_artifacts/decrypt_candidates/structural_annexb_plus_continuation_repeat4_sps.bin: Invalid data found when processing input | 
+

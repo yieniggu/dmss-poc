@@ -1,0 +1,36 @@
+v=0
+o=- 2253084285 2253084285 IN IP4 0.0.0.0
+s=Media Server
+c=IN IP4 0.0.0.0
+t=0 0
+a=control:*
+a=packetization-supported:DH
+a=rtppayload-supported:DH
+a=range:npt=now-
+a=encryptalg:encrypt2
+m=video 0 RTP/AVP 98
+a=control:trackID=0
+a=framerate:15.000000
+a=rtpmap:98 H265/90000
+a=fmtp
+a=recvonly
+m=audio 0 RTP/AVP 0
+a=control:trackID=1
+a=rtpmap:0 disable/0
+a=recvonly
+m=audio 0 RTP/AVP 0
+a=control:trackID=2
+a=rtpmap:0 disable/0
+a=recvonly
+m=application 0 RTP/AVP 100
+a=control:trackID=3
+a=rtpmap:100 stream-assist-frame/90000
+a=recvonly
+m=application 0 RTP/AVP 107
+a=control:trackID=4
+a=rtpmap:107 vnd.onvif.metadata/90000
+a=recvonly
+m=audio 0 RTP/AVP 0
+a=control:trackID=6
+a=rtpmap:0 disable/0
+a=recvonly
