@@ -66,16 +66,14 @@ pub async fn perform_stun(context: BootstrapContext) -> Result<BootstrapContext>
         "[stun] request socket1/lan tie_breaker={:016x}",
         primary_tie_breaker
     );
-    context.main_socket.connect(device_addr).await?;
-    context.main_socket.send(&socket1_lan).await?;
+    context.main_socket.send_to(&socket1_lan, device_addr).await?;
     let mut socket1_messages =
         receive_stun_window(&context.main_socket, "socket1/lan", Duration::from_millis(350)).await?;
     println!(
         "[stun] request socket1/pub tie_breaker={:016x}",
         primary_tie_breaker
     );
-    context.main_socket.connect(public_addr).await?;
-    context.main_socket.send(&socket1_pub).await?;
+    context.main_socket.send_to(&socket1_pub, public_addr).await?;
     socket1_messages.extend(
         receive_stun_window(&context.main_socket, "socket1/pub", Duration::from_millis(700)).await?,
     );
@@ -84,16 +82,14 @@ pub async fn perform_stun(context: BootstrapContext) -> Result<BootstrapContext>
         "[stun] request socket2/lan tie_breaker={:016x}",
         secondary_tie_breaker
     );
-    context.aux_socket.connect(second_device_addr).await?;
-    context.aux_socket.send(&socket2_lan).await?;
+    context.aux_socket.send_to(&socket2_lan, second_device_addr).await?;
     let mut socket2_messages =
         receive_stun_window(&context.aux_socket, "socket2/lan", Duration::from_millis(350)).await?;
     println!(
         "[stun] request socket2/pub tie_breaker={:016x}",
         secondary_tie_breaker
     );
-    context.aux_socket.connect(second_public_addr).await?;
-    context.aux_socket.send(&socket2_pub).await?;
+    context.aux_socket.send_to(&socket2_pub, second_public_addr).await?;
     socket2_messages.extend(
         receive_stun_window(&context.aux_socket, "socket2/pub", Duration::from_millis(700)).await?,
     );
@@ -147,8 +143,6 @@ async fn perform_raw_punch(
     let txid = rand::random::<[u8; 12]>();
     let cid_inv: Vec<u8> = request_identify.iter().map(|b| !b).collect();
 
-    socket.connect(public_addr).await?;
-
     let first = [
         b"\xff\xfe\xff\xe7".to_vec(),
         cookie.to_vec(),
@@ -160,19 +154,16 @@ async fn perform_raw_punch(
     ]
     .concat();
     println!("[raw] send1 to={public_addr} hex={}", hex_slice(&first, 128));
-    socket.send(&first).await?;
+    socket.send_to(&first, public_addr).await?;
 
     let mut buf = [0u8; 2048];
-    let first_len = timeout(Duration::from_secs(3), socket.recv(&mut buf))
+    let (first_len, first_from) = timeout(Duration::from_secs(3), socket.recv_from(&mut buf))
         .await
         .map_err(|_| anyhow!("Timed out waiting for first raw public response"))??;
     let first_response = &buf[..first_len];
     println!(
         "[raw] recv1 from={} len={} hex={}",
-        socket
-            .peer_addr()
-            .map(|addr| addr.to_string())
-            .unwrap_or_else(|_| "?".to_string()),
+        first_from,
         first_len,
         hex_slice(first_response, 128)
     );
@@ -205,7 +196,7 @@ async fn perform_raw_punch(
     ]
     .concat();
     println!("[raw] send2 to={public_addr} hex={}", hex_slice(&second, 128));
-    socket.send(&second).await?;
+    socket.send_to(&second, public_addr).await?;
 
     let mut followup_count = 0usize;
     let deadline = tokio::time::Instant::now() + Duration::from_millis(900);
@@ -214,18 +205,15 @@ async fn perform_raw_punch(
         if remaining.is_zero() {
             break;
         }
-        let recv = timeout(remaining, socket.recv(&mut buf)).await;
-        let Ok(Ok(n)) = recv else {
+        let recv = timeout(remaining, socket.recv_from(&mut buf)).await;
+        let Ok(Ok((n, from))) = recv else {
             break;
         };
         followup_count += 1;
         println!(
             "[raw] recv_followup#{} from={} len={} hex={}",
             followup_count,
-            socket
-                .peer_addr()
-                .map(|addr| addr.to_string())
-                .unwrap_or_else(|_| "?".to_string()),
+            from,
             n,
             hex_slice(&buf[..n], 128)
         );
@@ -265,14 +253,10 @@ async fn receive_stun_window(
         if remaining.is_zero() {
             break;
         }
-        let recv = timeout(remaining, socket.recv(&mut buf)).await;
-        let Ok(Ok(n)) = recv else {
+        let recv = timeout(remaining, socket.recv_from(&mut buf)).await;
+        let Ok(Ok((n, from))) = recv else {
             break;
         };
-        let from = socket
-            .peer_addr()
-            .map(|addr| addr.to_string())
-            .unwrap_or_else(|_| "?".to_string());
         let data = &buf[..n];
         println!(
             "[stun] recv {label} from={from} len={} hex={}",
